@@ -26,10 +26,10 @@
 | 属性         | 含义                                             |
 | ------------ | ------------------------------------------------ |
 | "domain"     | 签到域名，理论上支持 帕斯喵， 绝对支持 cordcloud |
-| "email":     | 登陆用户邮箱                                     |
-| "pwd":       | 密码                                             |
-| "bot_token": | telegram的bot token， 为空表示不发送通知         |
-| "chat_id":   | chat ID                                          |
+| "email"      | 登陆用户邮箱                                     |
+| "pwd"        | 密码                                             |
+| "bot_token"  | telegram的bot token， 为空表示不发送通知         |
+| "chat_id"    | chat ID                                          |
 | "msg_prefix" | tg通知的前缀                                     |
 
 ### 运行 
