@@ -2,6 +2,7 @@ import json
 
 import requests
 import telegram
+import re
 
 '''
 下面的data是先在浏览器中登录，然后打开开发者选项，找到一个请求方法为POST的请求，复制里面的Form Data
@@ -16,7 +17,7 @@ userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) ' \
             'AppleWebKit/537.36 (KHTML, like Gecko) ' \
             'Chrome/39.0.2171.95 Safari/537.36'
 header = {
-    "Referer": config['domain']+"/auth/login",
+    "Referer": config['domain'] + "/auth/login",
     'User-Agent': userAgent,
 }
 
@@ -24,13 +25,14 @@ bot = telegram.Bot(token=config['bot_token'])
 
 
 def send_tg(msg):
-    bot.send_message(chat_id=config['chat_id'], text=config['msg_prefix'] + msg)
+    bot.send_message(chat_id=config['chat_id'], text=config['msg_prefix'] + '\n' + msg)
 
 
 def cordcloud_checkin(email, pwd):
     domain_name = config['domain']
     postUrl = domain_name + '/auth/login'
     checkUrl = domain_name + '/user/checkin'
+    queryUrl = domain_name + '/user'
     postData = {
         'email': email,
         'passwd': pwd
@@ -43,6 +45,20 @@ def cordcloud_checkin(email, pwd):
     print(f"statusCode = {login_response.status_code}")
     print(f"text = {login_response.text.encode('utf-8').decode('unicode_escape')}")
 
+    query_response = session.get(url=queryUrl, headers=header)
+    query_text = query_response.text
+    used_obj = re.search(r'legendText:"(已用 \d+\.\d+% \d+.\d+\w+)"', query_text, re.M | re.I)
+    today_obj = re.search(r'legendText:"(今日 \d+\.\d+% \d+.\d+\w+)"', query_text, re.M | re.I)
+    left_obj = re.search(r'legendText:"(剩余 \d+\.\d+% \d+.\d+\w+)"', query_text, re.M | re.I)
+    if used_obj:
+        print(used_obj.group(1))
+    if today_obj:
+        print(today_obj.group(1))
+    if left_obj:
+        print(left_obj.group(1))
+
+    ext_info = used_obj.group(1) + "\n" + today_obj.group(1) + "\n" + left_obj.group(1)
+
     checkin_response = session.post(url=checkUrl, headers=header)
     # 无论是否登录成功，状态码一般都是 statusCode = 200
     response_text = checkin_response.text.encode('utf-8').decode('unicode_escape')
@@ -52,14 +68,14 @@ def cordcloud_checkin(email, pwd):
     if checkin_response.status_code == 200:
         if msg.startswith("获得了"):
             print("签到续命成功:" + msg)
-            send_tg("签到续命成功:" + msg)
+            send_tg("签到续命成功:" + msg + '\n\n' + ext_info)
         elif msg == '您似乎已经续命过了...':
             print("重复签到")
-            send_tg("重复签到")
+            send_tg("重复签到" + '\n\n' + ext_info)
     else:
         print("签到续命失败")
         print(f"statusCode = {checkin_response.status_code}")
-        send_tg("签到续命失败")
+        send_tg("签到续命失败" + '\n\n' + ext_info)
 
 
 if __name__ == "__main__":
