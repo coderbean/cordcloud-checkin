@@ -1,5 +1,7 @@
 /*
 基于 Neurogram 的脚本做了修改，适配 QuanX
+只测试了 CordCloud
+
 本脚本Github地址：https://raw.githubusercontent.com/coderbean/cordcloud-checkin/master/check_in.js
 GitHub: coderbean
 */
